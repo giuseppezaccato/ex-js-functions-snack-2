@@ -30,7 +30,7 @@ console.log(
  *****************************/
 
 //task dichiaro variabile con callback arrow anonima
-const quadrato = (numero) => numero * numero
+const quadrato = (numero) => numero * numero  //*nuovo operatore esponenziale (numero ** 2)
 console.log(quadrato(2))
 
 
@@ -99,9 +99,10 @@ function stampaOgniSecondo(msg) {
 }
 
 //task è necessario salvare l'ID del setInterval nella costante per poterlo fermare!
-//fix const stampaMessaggio = stampaOgniSecondo("messaggio test ogni secondo")
+//*(vedi concetto di REFERENCE nella lezione 2!)
+const stampaMessaggio = stampaOgniSecondo("messaggio test ogni secondo")
 
-//fix setTimeout(() => clearInterval(stampaMessaggio), 9000)
+setTimeout(() => clearInterval(stampaMessaggio), 9000)
 
 
 /*****************************
@@ -112,9 +113,20 @@ function stampaOgniSecondo(msg) {
  *****************************/
 function creaContatoreAutomatico(tempo) {
     let counter = 0
-    return setInterval(() => console.log(counter++), tempo)
+    return () => {
+        setInterval(() => {
+            counter++
+            console.log(`numero contatore : ${counter}`);
+        }
+            , tempo)
+    }
 }
-//fix creaContatoreAutomatico(1000)
+//?NON posso semplicemente evocare,devo raccogliere prima la funzione in una variabile!
+//* in questo modo il counter viene salvato volta per volta DENTRO alla variabile grazie alle CLOSURE
+
+const contaPer1Secondo = creaContatoreAutomatico(1000)
+const contaPer3Secondii = creaContatoreAutomatico(3000)
+
 
 /*****************************
  * 🏆 SNACK 7 - eseguiEferma
@@ -126,14 +138,21 @@ function creaContatoreAutomatico(tempo) {
  *****************************/
 
 function eseguiEferma(msg, start, stop) {
-    const inizio = setTimeout(() => console.log(msg), start)
+
+    //* salvo la reference nella variabile
+    const timer = setInterval(() => {
+        console.log(msg)
+    }, start)
+
+    //* interrompo l'intervallo usando il clearInterval sulla variabile sopra 
+    //? (in gergo si dice che l'intervallo è stato "pulito")
     setTimeout(function () {
-        clearInterval(inizio)
+        clearInterval(timer)
         console.log('stop')
     }, stop)
     return
 }
-eseguiEferma('start', 1000, 5000)
+eseguiEferma('sto eseguendo...', 1000, 5000)
 
 
 /*****************************
@@ -145,6 +164,7 @@ eseguiEferma('start', 1000, 5000)
 
 function contoAllaRovescia(n) {
     let counter = n
+
     const contatore = setInterval(() => {
         if (counter >= 0) {
             console.log(counter);
@@ -173,6 +193,7 @@ const operazioniMatematiche = [
     (g, h) => g - h
 ]
 
+//* for loop version
 function sequenzaOperazioni(array, tempo) {
     for (let i = 0; i < array.length; i++) {
         let delay = i * tempo
@@ -180,7 +201,25 @@ function sequenzaOperazioni(array, tempo) {
     }
 }
 
+//* forEach loop version
+function sequenzaOperazioniForEach(arrayOperazioni, intervallo) {
+
+    arrayOperazioni.forEach((operazione, index) => {
+        setTimeout(() => {
+            operazione()
+        }, intervallo * index)
+    })
+}
+
+//* fanno entrambi la stessissima cosa, cambia solo l'approccio col ciclo! :D
 sequenzaOperazioni([
+    () => console.log("Operazione 1"),
+    () => console.log("Operazione 2"),
+    () => console.log("Operazione 3"),
+    () => console.log("Operazione 4")
+], 2000);
+
+sequenzaOperazioniForEach([
     () => console.log("Operazione 1"),
     () => console.log("Operazione 2"),
     () => console.log("Operazione 3"),
@@ -196,18 +235,17 @@ sequenzaOperazioni([
  * al massimo una volta ogni n millisecondi
  *****************************/
 
-
 function creaThrottler(callback, tempo) {
     let lastExecutionTime = 0; // Variabile per memorizzare l'ultimo timestamp
 
     // Questa è la funzione che verrà restituita
-    return function throttledFunction() {
+    return function (...args) {
         const now = Date.now(); // Ottieni il timestamp corrente
 
         // Verifica se è trascorso abbastanza tempo dall'ultima esecuzione
         if (now - lastExecutionTime >= tempo) {
             // È trascorso abbastanza tempo, quindi esegui la callback
-            callback();
+            callback(...args);
 
             // Aggiorna l'ultimo timestamp di esecuzione
             lastExecutionTime = now;
